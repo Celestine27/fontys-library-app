@@ -6,5 +6,5 @@ public class Title
     public required  string Name { get; set; }
     public required string Creator { get; set; }
     public string? IsbnNumber { get; set; }
-    public int MaxChapters { get; set; }
+    public int? MaxChapters { get; set; }
 }
