@@ -3,7 +3,7 @@ using MySqlConnector;
 
 namespace library_app.Repository;
 
-public class TitleRepository
+public class TitleRepository : ITitleRepository
 {
     private readonly string? _connectionString;
 
