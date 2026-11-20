@@ -12,6 +12,7 @@
             <th>Name</th>
             <th>Creator</th>
             <th>Total Chapters</th>
+            <th>Actions</th>
         </tr>
 
         @foreach (Title title in Model.Titles)
@@ -20,6 +21,14 @@
                 <td>@title.Name</td>
                 <td>@title.Creator</td>
                 <td>@title.TotalChapters</td>
+                <td>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@title.Id" class="d-inline">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure you want to delete this title?');">
+                            Delete
+                        </button>
+                    </form>
+                </td>
             </tr>
         }
     </table>

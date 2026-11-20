@@ -42,34 +42,39 @@ public class TitleRepository : ITitleRepository
         
         while (await reader.ReadAsync())
         {
-            string? isbn = null; // Sets default value to null in case the database field is empty
-            
-            // IsDBNull checks if the value is NULL before reading and GetOrdinal gets the column index
-            if (!reader.IsDBNull(reader.GetOrdinal("isbn"))) 
-            {
-                isbn = reader.GetString("isbn");
-            }
-
-            int? totalChapters = null;
-
-            if (!reader.IsDBNull(reader.GetOrdinal("total_chapters")))
-            {
-                totalChapters = reader.GetInt32("total_chapters");
-            }
-            
-            Title title = new Title
-            {
-                Id = reader.GetInt32("id"),
-                Name = reader.GetString("name"),
-                Creator = reader.GetString("creator"),
-                Isbn = isbn,
-                TotalChapters = totalChapters
-            };
-            
+            Title title = MapReaderToTitle(reader);
             titles.Add(title);
         }
 
         return titles;
+    }
+
+    public async Task<Title?> GetTitleByIdAsync(int id)
+    {
+        await using MySqlConnection connection = await GetOpenConnectionAsync();
+        
+        string query = """
+                       select 
+                       id, 
+                       name, 
+                       creator, 
+                       isbn,
+                       total_chapters
+                       from titles
+                       where id = @id
+                       """;
+
+        await using MySqlCommand command = new MySqlCommand(query, connection);
+        command.Parameters.AddWithValue("@id", id);
+        await using MySqlDataReader reader = await command.ExecuteReaderAsync();
+
+        if (!await reader.ReadAsync())
+        {
+            return null;
+        }
+        
+        Title title = MapReaderToTitle(reader);
+        return title;
     }
 
     public async Task<bool> AddTitleAsync(Title title)
@@ -104,5 +109,52 @@ public class TitleRepository : ITitleRepository
         int rowsAffected = await command.ExecuteNonQueryAsync(); // Gives a number of affected rows
         
         return rowsAffected > 0;
+    }
+
+    public async Task<bool> DeleteTitleAsync(int id)
+    {
+        await using MySqlConnection connection = await GetOpenConnectionAsync();
+        
+        string query = """
+                       delete from titles
+                       where id = @id
+                       """;
+
+        await using MySqlCommand command = new MySqlCommand(query, connection);
+
+        command.Parameters.AddWithValue("@id", id);
+
+        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+        return rowsAffected > 0;
+    }
+
+    private Title MapReaderToTitle(MySqlDataReader reader)
+    {
+        string? isbn = null; // Sets default value to null in case the database field is empty
+            
+        // IsDBNull checks if the value is NULL before reading and GetOrdinal gets the column index
+        if (!reader.IsDBNull(reader.GetOrdinal("isbn"))) 
+        {
+            isbn = reader.GetString("isbn");
+        }
+
+        int? totalChapters = null;
+
+        if (!reader.IsDBNull(reader.GetOrdinal("total_chapters")))
+        {
+            totalChapters = reader.GetInt32("total_chapters");
+        }
+            
+        Title title = new Title
+        {
+            Id = reader.GetInt32("id"),
+            Name = reader.GetString("name"),
+            Creator = reader.GetString("creator"),
+            Isbn = isbn,
+            TotalChapters = totalChapters
+        };
+
+        return title;
     }
 }

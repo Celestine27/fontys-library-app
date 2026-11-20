@@ -20,4 +20,23 @@ public class IndexModel : PageModel
     {
         Titles = await _titleRepository.GetAllTitlesAsync();
     }
+
+    public async Task<IActionResult> OnPostDeleteAsync(int id)
+    {
+        Title? title = await _titleRepository.GetTitleByIdAsync(id);
+        
+        if (title == null)
+        {
+            return RedirectToPage();
+        }
+        
+        bool isDeleted = await _titleRepository.DeleteTitleAsync(id);
+
+        if (isDeleted)
+        {
+            TempData["SuccessMessage"] = $"'{title.Name}' was successfully deleted";
+        }
+
+        return RedirectToPage();
+    }
 }
