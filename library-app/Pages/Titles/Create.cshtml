@@ -1,0 +1,40 @@
+@page
+@using library_app.Models
+@model library_app.Pages.Titles.Create
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<body>
+<h1>Add Title</h1>
+
+<form method="post">
+    <div>
+        <label asp-for="NewTitle.Name">Name</label>
+        <input asp-for="NewTitle.Name" />
+        <span asp-validation-for="NewTitle.Name"></span>
+    </div>
+    <div>
+        <label asp-for="NewTitle.Creator">Creator</label>
+        <input asp-for="NewTitle.Creator" />
+        <span asp-validation-for="NewTitle.Creator"></span>
+    </div>
+    <div>
+        <label asp-for="NewTitle.Isbn">Isbn</label>
+        <input asp-for="NewTitle.Isbn" />
+        <span asp-validation-for="NewTitle.Isbn"></span>
+    </div>
+    <div>
+        <label asp-for="NewTitle.TotalChapters">Total Chapters</label>
+        <input asp-for="NewTitle.TotalChapters" />
+        <span asp-validation-for="NewTitle.TotalChapters"></span>
+    </div>
+
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>

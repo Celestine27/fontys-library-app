@@ -6,7 +6,7 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
+    <h1 class="display-4">Library</h1>
     <table class="table table-striped">
         <tr>
             <th>Name</th>
@@ -19,9 +19,25 @@
             <tr>
                 <td>@title.Name</td>
                 <td>@title.Creator</td>
-                <td>@title.MaxChapters</td>
+                <td>@title.TotalChapters</td>
             </tr>
         }
     </table>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <a asp-page="/Titles/Create" class="btn btn-primary mb-3">Add title</a>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="success-message" class="alert alert-success mt-2">
+            @TempData["SuccessMessage"]
+        </div>
+
+        <script>
+            setTimeout(function () {
+                const message = document.getElementById("success-message");
+                if (message) {
+                    message.style.display = "none";
+                }
+            }, 3000);
+        </script>
+    }
 </div>
