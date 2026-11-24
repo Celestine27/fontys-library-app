@@ -11,4 +11,6 @@ public interface ITitleRepository
     Task<bool> AddTitleAsync(Title title);
 
     Task<bool> DeleteTitleAsync(int id);
+
+    Task<bool> UpdateTitleAsync(Title title);
 }

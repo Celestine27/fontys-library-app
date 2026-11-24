@@ -129,6 +129,42 @@ public class TitleRepository : ITitleRepository
         return rowsAffected > 0;
     }
 
+    public async Task<bool> UpdateTitleAsync(Title title)
+    {
+        await using MySqlConnection connection = await GetOpenConnectionAsync();
+        
+        string query = """
+                       update titles
+                       set name = @name,
+                           creator = @creator,
+                           isbn = @isbn,
+                           total_chapters = @total_chapters
+                           where id = @id
+                       """;
+
+        await using MySqlCommand command = new MySqlCommand(query, connection);
+
+        command.Parameters.AddWithValue("id", title.Id);
+        command.Parameters.AddWithValue("@name", title.Name);
+        command.Parameters.AddWithValue("@creator", title.Creator);
+        
+        command.Parameters.AddWithValue("@isbn", DBNull.Value);
+        if (title.Isbn != null)
+        {
+            command.Parameters["@isbn"].Value = title.Isbn;
+        }
+
+        command.Parameters.AddWithValue("@total_chapters", DBNull.Value);
+        if (title.TotalChapters != null)
+        {
+            command.Parameters["@total_chapters"].Value = title.TotalChapters;
+        }
+
+        int rowsAffected = await command.ExecuteNonQueryAsync();
+
+        return rowsAffected > 0;
+    }
+
     private Title MapReaderToTitle(MySqlDataReader reader)
     {
         string? isbn = null; // Sets default value to null in case the database field is empty
