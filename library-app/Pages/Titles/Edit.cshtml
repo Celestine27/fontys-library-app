@@ -1,0 +1,41 @@
+@page
+@using library_app.Models
+@model library_app.Pages.Titles.Edit
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<body>
+<h1>Edit Title</h1>
+
+<form method="post">
+    <input type="hidden" asp-for="EditTitle.Id" />
+
+    <div>
+        <label asp-for="EditTitle.Name">Name</label>
+        <input asp-for="EditTitle.Name" />
+        <span asp-validation-for="EditTitle.Name"></span>
+    </div>
+    <div>
+        <label asp-for="EditTitle.Creator">Creator</label>
+        <input asp-for="EditTitle.Creator" />
+        <span asp-validation-for="EditTitle.Creator"></span>
+    </div>
+    <div>
+        <label asp-for="EditTitle.Isbn">Isbn</label>
+        <input asp-for="EditTitle.Isbn" />
+        <span asp-validation-for="EditTitle.Isbn"></span>
+    </div>
+    <div>
+        <label asp-for="EditTitle.TotalChapters">Total Chapters</label>
+        <input asp-for="EditTitle.TotalChapters" />
+        <span asp-validation-for="EditTitle.TotalChapters"></span>
+    </div>
+
+    <button type="submit">Save</button>
+</form>
+</body>
+</html>
