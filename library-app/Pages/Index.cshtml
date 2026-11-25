@@ -12,6 +12,9 @@
             <th>Name</th>
             <th>Creator</th>
             <th>Total Chapters</th>
+            <th>Medium</th>
+            <th>Total Pages</th>
+            <th>Total Volumes</th>
             <th>Actions</th>
         </tr>
 
@@ -21,6 +24,18 @@
                 <td>@title.Name</td>
                 <td>@title.Creator</td>
                 <td>@title.TotalChapters</td>
+                @if (title is Book book)
+                {
+                    <td>Book</td>
+                    <td>@(book.TotalPages?.ToString() ?? "-")</td>
+                    <td>-</td>
+                }
+                else if (title is Manga manga)
+                {
+                    <td>Manga</td>
+                    <td>-</td>
+                    <td>@(manga.TotalVolumes?.ToString() ?? "-")</td>
+                }
                 <td>
                     <a asp-page="/Titles/Edit" asp-route-id="@title.Id" class="btn btn-secondary btn-sm">Edit</a>
                     

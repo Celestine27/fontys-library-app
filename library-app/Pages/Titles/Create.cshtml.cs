@@ -10,7 +10,25 @@ public class Create : PageModel
     private readonly ITitleRepository _titleRepository;
 
     [BindProperty] // Puts the form inside the property
-    public Title NewTitle { get; set; } = new Title();
+    public string Name { get; set; } = string.Empty;
+    
+    [BindProperty] 
+    public string Creator { get; set; } = string.Empty;
+    
+    [BindProperty] 
+    public string? Isbn { get; set; }
+    
+    [BindProperty] 
+    public int? TotalChapters { get; set; }
+
+    [BindProperty] 
+    public string SelectedType { get; set; } = string.Empty;
+
+    [BindProperty]
+    public int? TotalPages { get; set; }
+    
+    [BindProperty]
+    public int? TotalVolumes { get; set; }
 
     public Create(ITitleRepository titleRepository)
     {
@@ -23,9 +41,30 @@ public class Create : PageModel
         {
             return Page(); // Keeps users on the same page
         }
+
+        Title selectedType = SelectedType switch
+        {
+            "Book" => new Book
+            {
+                Name = Name,
+                Creator = Creator,
+                Isbn = Isbn,
+                TotalChapters = TotalChapters,
+                TotalPages = TotalPages
+            },
+            "Manga" => new Manga
+            {
+                Name = Name,
+                Creator = Creator,
+                Isbn = Isbn,
+                TotalChapters = TotalChapters,
+                TotalVolumes = TotalVolumes
+            },
+            _ => throw new InvalidOperationException($"Unknown type")
+        };
         
-        await _titleRepository.AddTitleAsync(NewTitle);
-        TempData["SuccessMessage"] = $"'{NewTitle.Name}' was successfully added";
+        await _titleRepository.AddTitleAsync(selectedType);
+        TempData["SuccessMessage"] = $"'{selectedType.Name}' was successfully added";
         return RedirectToPage("/Index"); // Redirects users to the index page
     }
 }

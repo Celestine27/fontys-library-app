@@ -10,30 +10,49 @@
 <html>
 <body>
 <h1>Edit Title</h1>
+<p>Type: <strong>@Model.SelectedType</strong></p>
 
 <form method="post">
-    <input type="hidden" asp-for="EditTitle.Id" />
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="SelectedType"/>
 
     <div>
-        <label asp-for="EditTitle.Name">Name</label>
-        <input asp-for="EditTitle.Name" />
-        <span asp-validation-for="EditTitle.Name"></span>
+        <label asp-for="Name">Name</label>
+        <input asp-for="Name" />
+        <span asp-validation-for="Name"></span>
     </div>
     <div>
-        <label asp-for="EditTitle.Creator">Creator</label>
-        <input asp-for="EditTitle.Creator" />
-        <span asp-validation-for="EditTitle.Creator"></span>
+        <label asp-for="Creator">Creator</label>
+        <input asp-for="Creator" />
+        <span asp-validation-for="Creator"></span>
     </div>
     <div>
-        <label asp-for="EditTitle.Isbn">Isbn</label>
-        <input asp-for="EditTitle.Isbn" />
-        <span asp-validation-for="EditTitle.Isbn"></span>
+        <label asp-for="Isbn">Isbn</label>
+        <input asp-for="Isbn" />
+        <span asp-validation-for="Isbn"></span>
     </div>
     <div>
-        <label asp-for="EditTitle.TotalChapters">Total Chapters</label>
-        <input asp-for="EditTitle.TotalChapters" />
-        <span asp-validation-for="EditTitle.TotalChapters"></span>
+        <label asp-for="TotalChapters">Total Chapters</label>
+        <input asp-for="TotalChapters" />
+        <span asp-validation-for="TotalChapters"></span>
     </div>
+
+    @if (Model.SelectedType == "Book")
+    {
+        <div>
+            <label asp-for="TotalPages">Total Pages</label>
+            <input asp-for="TotalPages" />
+            <span asp-validation-for="TotalPages"></span>
+        </div>
+    }
+    else if (Model.SelectedType == "Manga")
+    {
+        <div>
+            <label asp-for="TotalVolumes">Total Volumes</label>
+            <input asp-for="TotalVolumes" />
+            <span asp-validation-for="TotalVolumes"></span>
+        </div>
+    }
 
     <button type="submit">Save</button>
 </form>

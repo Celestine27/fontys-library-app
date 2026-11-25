@@ -8,9 +8,30 @@ namespace library_app.Pages.Titles;
 public class Edit : PageModel
 {
     private readonly ITitleRepository _titleRepository;
+    
+    [BindProperty]
+    public int Id { get; set; }
+    
+    [BindProperty] // Puts the form inside the property
+    public string Name { get; set; } = string.Empty;
+    
+    [BindProperty] 
+    public string Creator { get; set; } = string.Empty;
+    
+    [BindProperty] 
+    public string? Isbn { get; set; }
+    
+    [BindProperty] 
+    public int? TotalChapters { get; set; }
 
     [BindProperty] 
-    public Title EditTitle { get; set; } = new Title();
+    public string SelectedType { get; set; } = string.Empty;
+
+    [BindProperty]
+    public int? TotalPages { get; set; }
+    
+    [BindProperty]
+    public int? TotalVolumes { get; set; }
 
     public Edit(ITitleRepository titleRepository)
     {
@@ -26,7 +47,22 @@ public class Edit : PageModel
             return RedirectToPage("/Index");
         }
 
-        EditTitle = title;
+        Id = title.Id;
+        Name = title.Name;
+        Creator = title.Creator;
+        Isbn = title.Isbn;
+        TotalChapters = title.TotalChapters;
+
+        if (title is Book book)
+        {
+            SelectedType = "Book";
+            TotalPages = book.TotalPages;
+        }
+        else if (title is Manga manga)
+        {
+            SelectedType = "Manga";
+            TotalVolumes = manga.TotalVolumes;
+        }
         
         return Page();
     }
@@ -37,9 +73,32 @@ public class Edit : PageModel
         {
             return Page();
         }
+
+        Title updateTitle = SelectedType switch
+        {
+            "Book" => new Book
+            {
+                Id = Id,
+                Name = Name,
+                Creator = Creator,
+                Isbn = Isbn,
+                TotalChapters = TotalChapters,
+                TotalPages = TotalPages
+            },
+            "Manga" => new Manga
+            {
+                Id = Id,
+                Name = Name,
+                Creator = Creator,
+                Isbn = Isbn,
+                TotalChapters = TotalChapters,
+                TotalVolumes = TotalVolumes
+            },
+            _ => throw new InvalidOperationException("Unknown type")
+        };
         
-        await _titleRepository.UpdateTitleAsync(EditTitle);
-        TempData["SuccessMessage"] = $"'{EditTitle.Name}' was successfully edited";
+        await _titleRepository.UpdateTitleAsync(updateTitle);
+        TempData["SuccessMessage"] = $"'{updateTitle.Name}' was successfully edited";
 
         return RedirectToPage("/Index");
     }
