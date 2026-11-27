@@ -1,4 +1,4 @@
-namespace library_app.Models;
+namespace Logic.Models;
 
 public abstract class Title
 {

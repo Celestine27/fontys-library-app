@@ -1,5 +1,6 @@
-using library_app.Models;
+using library_app.Models.Requests;
 using Logic.Interfaces;
+using Logic.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -7,61 +8,40 @@ namespace library_app.Pages.Titles;
 
 public class Edit : PageModel
 {
-    private readonly ITitleRepository _titleRepository;
+    private readonly ITitleService _titleService;
     
-    [BindProperty]
-    public int Id { get; set; }
-    
-    [BindProperty] // Puts the form inside the property
-    public string Name { get; set; } = string.Empty;
-    
-    [BindProperty] 
-    public string Creator { get; set; } = string.Empty;
-    
-    [BindProperty] 
-    public string? Isbn { get; set; }
-    
-    [BindProperty] 
-    public int? TotalChapters { get; set; }
-
-    [BindProperty] 
-    public string SelectedType { get; set; } = string.Empty;
-
-    [BindProperty]
-    public int? TotalPages { get; set; }
-    
-    [BindProperty]
-    public int? TotalVolumes { get; set; }
-
-    public Edit(ITitleRepository titleRepository)
+    public Edit(ITitleService titleService)
     {
-        _titleRepository = titleRepository;
+        _titleService = titleService;
     }
+
+    [BindProperty] // Puts the form inside the property
+    public UpdateTitleRequest TitleRequest { get; set; } = new UpdateTitleRequest();
     
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        Title? title = await _titleRepository.GetTitleByIdAsync(id);
+        Title? title = await _titleService.GetTitleByIdAsync(id);
 
         if (title == null)
         {
             return RedirectToPage("/Index");
         }
 
-        Id = title.Id;
-        Name = title.Name;
-        Creator = title.Creator;
-        Isbn = title.Isbn;
-        TotalChapters = title.TotalChapters;
+        TitleRequest.Id = title.Id;
+        TitleRequest.Name = title.Name;
+        TitleRequest.Creator = title.Creator;
+        TitleRequest.Isbn = title.Isbn;
+        TitleRequest.TotalChapters = title.TotalChapters;
 
         if (title is Book book)
         {
-            SelectedType = "Book";
-            TotalPages = book.TotalPages;
+            TitleRequest.SelectedType = "Book";
+            TitleRequest.TotalPages = book.TotalPages;
         }
         else if (title is Manga manga)
         {
-            SelectedType = "Manga";
-            TotalVolumes = manga.TotalVolumes;
+            TitleRequest.SelectedType = "Manga";
+            TitleRequest.TotalVolumes = manga.TotalVolumes;
         }
         
         return Page();
@@ -74,30 +54,30 @@ public class Edit : PageModel
             return Page();
         }
 
-        Title updateTitle = SelectedType switch
+        Title updateTitle = TitleRequest.SelectedType switch
         {
             "Book" => new Book
             {
-                Id = Id,
-                Name = Name,
-                Creator = Creator,
-                Isbn = Isbn,
-                TotalChapters = TotalChapters,
-                TotalPages = TotalPages
+                Id = TitleRequest.Id,
+                Name = TitleRequest.Name,
+                Creator = TitleRequest.Creator,
+                Isbn = TitleRequest.Isbn,
+                TotalChapters = TitleRequest.TotalChapters,
+                TotalPages = TitleRequest.TotalPages
             },
             "Manga" => new Manga
             {
-                Id = Id,
-                Name = Name,
-                Creator = Creator,
-                Isbn = Isbn,
-                TotalChapters = TotalChapters,
-                TotalVolumes = TotalVolumes
+                Id = TitleRequest.Id,
+                Name = TitleRequest.Name,
+                Creator = TitleRequest.Creator,
+                Isbn = TitleRequest.Isbn,
+                TotalChapters = TitleRequest.TotalChapters,
+                TotalVolumes = TitleRequest.TotalVolumes
             },
             _ => throw new InvalidOperationException("Unknown type")
         };
         
-        await _titleRepository.UpdateTitleAsync(updateTitle);
+        await _titleService.UpdateTitleAsync(updateTitle);
         TempData["SuccessMessage"] = $"'{updateTitle.Name}' was successfully edited";
 
         return RedirectToPage("/Index");

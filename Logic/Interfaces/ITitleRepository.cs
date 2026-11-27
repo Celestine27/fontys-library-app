@@ -1,4 +1,4 @@
-using library_app.Models;
+using Logic.Models;
 
 namespace Logic.Interfaces;
 

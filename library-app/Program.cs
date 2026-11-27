@@ -1,11 +1,13 @@
 using DAL.Repository;
 using Logic.Interfaces;
+using Logic.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<ITitleRepository, TitleRepository>();
+builder.Services.AddScoped<ITitleService, TitleService>();
 
 var app = builder.Build();
 

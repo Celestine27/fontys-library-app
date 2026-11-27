@@ -1,5 +1,5 @@
-using library_app.Models;
 using Logic.Interfaces;
+using Logic.Models;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 

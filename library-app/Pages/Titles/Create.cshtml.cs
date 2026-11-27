@@ -1,5 +1,6 @@
-using library_app.Models;
+using library_app.Models.Requests;
 using Logic.Interfaces;
+using Logic.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -7,33 +8,15 @@ namespace library_app.Pages.Titles;
 
 public class Create : PageModel
 {
-    private readonly ITitleRepository _titleRepository;
+    private readonly ITitleService _titleService;
 
-    [BindProperty] // Puts the form inside the property
-    public string Name { get; set; } = string.Empty;
-    
-    [BindProperty] 
-    public string Creator { get; set; } = string.Empty;
-    
-    [BindProperty] 
-    public string? Isbn { get; set; }
-    
-    [BindProperty] 
-    public int? TotalChapters { get; set; }
-
-    [BindProperty] 
-    public string SelectedType { get; set; } = string.Empty;
-
-    [BindProperty]
-    public int? TotalPages { get; set; }
-    
-    [BindProperty]
-    public int? TotalVolumes { get; set; }
-
-    public Create(ITitleRepository titleRepository)
+    public Create(ITitleService titleService)
     {
-        _titleRepository = titleRepository;
+        _titleService = titleService;
     }
+    
+    [BindProperty] // Puts the form inside the property
+    public CreateTitleRequest TitleRequest { get; set; } = new CreateTitleRequest();
 
     public async Task<IActionResult> OnPostAsync()
     {
@@ -42,28 +25,28 @@ public class Create : PageModel
             return Page(); // Keeps users on the same page
         }
 
-        Title selectedType = SelectedType switch
+        Title selectedType = TitleRequest.SelectedType switch
         {
             "Book" => new Book
             {
-                Name = Name,
-                Creator = Creator,
-                Isbn = Isbn,
-                TotalChapters = TotalChapters,
-                TotalPages = TotalPages
+                Name = TitleRequest.Name,
+                Creator = TitleRequest.Creator,
+                Isbn = TitleRequest.Isbn,
+                TotalChapters = TitleRequest.TotalChapters,
+                TotalPages = TitleRequest.TotalPages
             },
             "Manga" => new Manga
             {
-                Name = Name,
-                Creator = Creator,
-                Isbn = Isbn,
-                TotalChapters = TotalChapters,
-                TotalVolumes = TotalVolumes
+                Name = TitleRequest.Name,
+                Creator = TitleRequest.Creator,
+                Isbn = TitleRequest.Isbn,
+                TotalChapters = TitleRequest.TotalChapters,
+                TotalVolumes = TitleRequest.TotalVolumes
             },
             _ => throw new InvalidOperationException($"Unknown type")
         };
         
-        await _titleRepository.AddTitleAsync(selectedType);
+        await _titleService.AddTitleAsync(selectedType);
         TempData["SuccessMessage"] = $"'{selectedType.Name}' was successfully added";
         return RedirectToPage("/Index"); // Redirects users to the index page
     }

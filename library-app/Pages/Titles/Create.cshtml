@@ -1,65 +1,65 @@
 @page
-@using library_app.Models
 @model library_app.Pages.Titles.Create
 
 @{
-    Layout = null;
+    ViewData["Title"] = "Add Title";
 }
 
-<!DOCTYPE html>
-
-<html>
-<body>
 <h1>Add Title</h1>
 
-<form method="post">
-    <div>
-        <label asp-for="Name">Name</label>
-        <input asp-for="Name" />
-        <span asp-validation-for="Name"></span>
-    </div>
-    <div>
-        <label asp-for="Creator">Creator</label>
-        <input asp-for="Creator" />
-        <span asp-validation-for="Creator"></span>
-    </div>
-    <div>
-        <label asp-for="Isbn">Isbn</label>
-        <input asp-for="Isbn" />
-        <span asp-validation-for="Isbn"></span>
-    </div>
-    <div>
-        <label asp-for="TotalChapters">Total Chapters</label>
-        <input asp-for="TotalChapters" />
-        <span asp-validation-for="TotalChapters"></span>
-    </div>
-    <div>
-        <label asp-for="SelectedType">Type</label>
-        <select asp-for="SelectedType">
-            <option value="">-- Choose a type --</option>
-            <option value="Book">Book</option>
-            <option value="Manga">Manga</option>
-        </select>
-        <span asp-validation-for="SelectedType"></span>
-    </div>
+<div class="row">
+    <div class="col-md-6">
+        <form method="post">
+            <div class="mb-3">
+                <label class="form-label" asp-for="TitleRequest.Name">Name</label>
+                <input class="form-control" asp-for="TitleRequest.Name"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.Name"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" asp-for="TitleRequest.Creator">Creator</label>
+                <input class="form-control" asp-for="TitleRequest.Creator"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.Creator"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" asp-for="TitleRequest.Isbn">Isbn</label>
+                <input class="form-control" asp-for="TitleRequest.Isbn"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.Isbn"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" asp-for="TitleRequest.TotalChapters">Total Chapters</label>
+                <input class="form-control" asp-for="TitleRequest.TotalChapters"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.TotalChapters"></span>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" asp-for="TitleRequest.SelectedType">Type</label>
+                <select class="form-select" asp-for="TitleRequest.SelectedType">
+                    <option value="">-- Choose a type --</option>
+                    <option value="Book">Book</option>
+                    <option value="Manga">Manga</option>
+                </select>
+                <span class="text-danger" asp-validation-for="TitleRequest.SelectedType"></span>
+            </div>
 
-    <div id="pages-field" style="display: none;">
-        <label asp-for="TotalPages">Total Pages</label>
-        <input asp-for="TotalPages" />
-        <span asp-validation-for="TotalPages"></span>
-    </div>
+            <div class="mb-3" id="pages-field" style="display: none;">
+                <label class="form-label" asp-for="TitleRequest.TotalPages">Total Pages</label>
+                <input class="form-control" asp-for="TitleRequest.TotalPages"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.TotalPages"></span>
+            </div>
 
-    <div id="volumes-field" style="display: none;">
-        <label asp-for="TotalVolumes">Total Volumes</label>
-        <input asp-for="TotalVolumes" />
-        <span asp-validation-for="TotalVolumes"></span>
-    </div>
+            <div class="mb-3" id="volumes-field" style="display: none;">
+                <label class="form-label" asp-for="TitleRequest.TotalVolumes">Total Volumes</label>
+                <input class="form-control" asp-for="TitleRequest.TotalVolumes"/>
+                <span class="text-danger" asp-validation-for="TitleRequest.TotalVolumes"></span>
+            </div>
 
-    <button type="submit">Save</button>
-</form>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <a asp-page="/Index" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
 
 <script>
-    const typeSelect = document.getElementById("SelectedType");
+    const typeSelect = document.getElementById("TitleRequest_SelectedType");
     const pagesField = document.getElementById("pages-field");
     const volumesField = document.getElementById("volumes-field");
 
@@ -71,5 +71,3 @@
     typeSelect.addEventListener("change", updateFields);
     updateFields();
 </script>
-</body>
-</html>
