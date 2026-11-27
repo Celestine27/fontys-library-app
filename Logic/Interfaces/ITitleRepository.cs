@@ -1,6 +1,6 @@
 using library_app.Models;
 
-namespace library_app.Repository;
+namespace Logic.Interfaces;
 
 public interface ITitleRepository
 {

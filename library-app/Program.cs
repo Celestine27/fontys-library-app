@@ -1,4 +1,5 @@
-using library_app.Repository;
+using DAL.Repository;
+using Logic.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,7 +1,9 @@
 using library_app.Models;
+using Logic.Interfaces;
+using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
-namespace library_app.Repository;
+namespace DAL.Repository;
 
 public class TitleRepository : ITitleRepository
 {
@@ -147,7 +149,7 @@ public class TitleRepository : ITitleRepository
                 bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
             }
 
-            await bookCommand.ExecuteNonQueryAsync(); // Executes the sql commands
+            await bookCommand.ExecuteNonQueryAsync(); // Executes the SQL commands
         } 
         else if (title is Manga manga)
         {
@@ -165,7 +167,7 @@ public class TitleRepository : ITitleRepository
                 mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
             }
 
-            await mangaCommand.ExecuteNonQueryAsync(); // executes the sql commands
+            await mangaCommand.ExecuteNonQueryAsync(); // executes the SQL commands
         }
         
         return newTitleId > 0;

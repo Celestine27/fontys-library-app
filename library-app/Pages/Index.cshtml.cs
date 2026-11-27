@@ -1,5 +1,5 @@
 using library_app.Models;
-using library_app.Repository;
+using Logic.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
