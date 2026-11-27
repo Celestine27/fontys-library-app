@@ -193,6 +193,8 @@ public class TitleRepository : ITitleRepository
 
     public async Task<bool> UpdateTitleAsync(Title title)
     {
+        int totalRowsAffected = 0;
+        
         await using MySqlConnection connection = await GetOpenConnectionAsync();
         
         string titleQuery = """
@@ -221,7 +223,9 @@ public class TitleRepository : ITitleRepository
         {
             command.Parameters["@total_chapters"].Value = title.TotalChapters;
         }
-
+        
+        totalRowsAffected +=  await command.ExecuteNonQueryAsync();
+        
         if (title is Book book)
         {
             string bookQuery = """
@@ -240,7 +244,7 @@ public class TitleRepository : ITitleRepository
                 bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
             }
 
-            await bookCommand.ExecuteNonQueryAsync();
+            totalRowsAffected += await bookCommand.ExecuteNonQueryAsync();
         }
         else if (title is Manga manga)
         {
@@ -260,12 +264,10 @@ public class TitleRepository : ITitleRepository
                 mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
             }
 
-            await mangaCommand.ExecuteNonQueryAsync();
+            totalRowsAffected += await mangaCommand.ExecuteNonQueryAsync();
         }
-            
-        int rowsAffected = await command.ExecuteNonQueryAsync();
-
-        return rowsAffected > 0;
+        
+        return totalRowsAffected > 0;
     }
 
     private Title MapReaderToTitle(MySqlDataReader reader)
