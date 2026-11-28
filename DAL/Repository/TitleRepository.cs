@@ -92,85 +92,100 @@ public class TitleRepository : ITitleRepository
     public async Task<bool> AddTitleAsync(Title title)
     {
         await using MySqlConnection connection = await GetOpenConnectionAsync();
-
-        string titleQuery = """
-                        insert into titles(name,creator, isbn, total_chapters, type_id)
-                        values(@name, @creator, @isbn, @total_chapters, @type_id);
-                        select last_insert_id();
-                       """; // Inserts values in specified column
-                            // last_insert_id() selects the last inserted id
-
-        int typeId = title switch
-        {
-            Book => 1,
-            Manga => 2,
-            _ => throw new InvalidOperationException($"Unsupported title type: {title.TypeName}")
-        };
-                            
-        await using MySqlCommand command = new MySqlCommand(titleQuery, connection); // Prepares the SQL command
-
-        // Binds the shared title properties to SQL parameters to prevent SQL injection
-        command.Parameters.AddWithValue("@name", title.Name);
-        command.Parameters.AddWithValue("@creator", title.Creator);
         
-        // Checks if the value is null
-        command.Parameters.AddWithValue("@isbn", DBNull.Value);
-        if (title.Isbn != null)
+        await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
+
+        try
         {
-            command.Parameters["@isbn"].Value = title.Isbn;
-        }
-        
-        // Checks if the value is null
-        command.Parameters.AddWithValue("@total_chapters", DBNull.Value);
-        if (title.TotalChapters != null)
-        {
-            command.Parameters["@total_chapters"].Value = title.TotalChapters;
-        }
+            string titleQuery = """
+                                 insert into titles(name,creator, isbn, total_chapters, type_id)
+                                 values(@name, @creator, @isbn, @total_chapters, @type_id);
+                                 select last_insert_id();
+                                """; // Inserts values in specified column
+            // last_insert_id() selects the last inserted id
 
-        command.Parameters.AddWithValue("@type_id", typeId);
-
-        // Executes the insert and retrieves the newly generated primary key from titles
-        int newTitleId = Convert.ToInt32(await command.ExecuteScalarAsync());
-
-        // Inserts type-specific properties into the matching child table using the new title ID
-        if (title is Book book)
-        {
-            string bookQuery = """
-                               insert into books (id, total_pages)
-                               values (@id, @total_pages)
-                               """;
-
-            await using MySqlCommand bookCommand = new MySqlCommand(bookQuery, connection);
-            bookCommand.Parameters.AddWithValue("@id", newTitleId);
-            bookCommand.Parameters.AddWithValue("@total_pages", DBNull.Value);
-            
-            if (book.TotalPages != null)
+            int typeId = title switch
             {
-                bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
+                Book => 1,
+                Manga => 2,
+                _ => throw new InvalidOperationException($"Unsupported title type: {title.TypeName}")
+            };
+
+            await using MySqlCommand
+                command = new MySqlCommand(titleQuery, connection, transaction); // Prepares the SQL command
+
+            // Binds the shared title properties to SQL parameters to prevent SQL injection
+            command.Parameters.AddWithValue("@name", title.Name);
+            command.Parameters.AddWithValue("@creator", title.Creator);
+
+            // Checks if the value is null
+            command.Parameters.AddWithValue("@isbn", DBNull.Value);
+            if (title.Isbn != null)
+            {
+                command.Parameters["@isbn"].Value = title.Isbn;
             }
 
-            await bookCommand.ExecuteNonQueryAsync(); // Executes the SQL commands
-        } 
-        else if (title is Manga manga)
-        {
-            string mangaQuery = """
-                                insert into manga (id, total_volumes)
-                                values (@id, @total_volumes)
-                                """;
-
-            await using MySqlCommand mangaCommand = new MySqlCommand(mangaQuery, connection);
-            mangaCommand.Parameters.AddWithValue("@id", newTitleId);
-            mangaCommand.Parameters.AddWithValue("@total_volumes", DBNull.Value);
-
-            if (manga.TotalVolumes != null)
+            // Checks if the value is null
+            command.Parameters.AddWithValue("@total_chapters", DBNull.Value);
+            if (title.TotalChapters != null)
             {
-                mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
+                command.Parameters["@total_chapters"].Value = title.TotalChapters;
             }
 
-            await mangaCommand.ExecuteNonQueryAsync(); // executes the SQL commands
+            command.Parameters.AddWithValue("@type_id", typeId);
+
+            // Executes the insert and retrieves the newly generated primary key from titles
+            int newTitleId = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+            // Inserts type-specific properties into the matching child table using the new title ID
+            if (title is Book book)
+            {
+                string bookQuery = """
+                                   insert into books (id, total_pages)
+                                   values (@id, @total_pages)
+                                   """;
+
+                await using MySqlCommand bookCommand = new MySqlCommand(bookQuery, connection, transaction);
+
+                bookCommand.Parameters.AddWithValue("@id", newTitleId);
+                bookCommand.Parameters.AddWithValue("@total_pages", DBNull.Value);
+
+                if (book.TotalPages != null)
+                {
+                    bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
+                }
+
+                await bookCommand.ExecuteNonQueryAsync(); // Executes the SQL commands
+            }
+            else if (title is Manga manga)
+            {
+                string mangaQuery = """
+                                    insert into manga (id, total_volumes)
+                                    values (@id, @total_volumes)
+                                    """;
+
+                await using MySqlCommand mangaCommand = new MySqlCommand(mangaQuery, connection, transaction);
+
+                mangaCommand.Parameters.AddWithValue("@id", newTitleId);
+                mangaCommand.Parameters.AddWithValue("@total_volumes", DBNull.Value);
+
+                if (manga.TotalVolumes != null)
+                {
+                    mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
+                }
+
+                await mangaCommand.ExecuteNonQueryAsync(); // executes the SQL commands
+            }
+
+            await transaction.CommitAsync();
+
+            return newTitleId > 0;
         }
-        
-        return newTitleId > 0;
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     public async Task<bool> DeleteTitleAsync(int id)
@@ -196,78 +211,90 @@ public class TitleRepository : ITitleRepository
         int totalRowsAffected = 0;
         
         await using MySqlConnection connection = await GetOpenConnectionAsync();
-        
-        string titleQuery = """
-                       update titles
-                       set name = @name,
-                           creator = @creator,
-                           isbn = @isbn,
-                           total_chapters = @total_chapters
-                           where id = @id
-                       """;
 
-        await using MySqlCommand command = new MySqlCommand(titleQuery, connection);
+        await using MySqlTransaction transaction = await connection.BeginTransactionAsync();
 
-        command.Parameters.AddWithValue("@id", title.Id);
-        command.Parameters.AddWithValue("@name", title.Name);
-        command.Parameters.AddWithValue("@creator", title.Creator);
-        
-        command.Parameters.AddWithValue("@isbn", DBNull.Value);
-        if (title.Isbn != null)
+        try
         {
-            command.Parameters["@isbn"].Value = title.Isbn;
-        }
-
-        command.Parameters.AddWithValue("@total_chapters", DBNull.Value);
-        if (title.TotalChapters != null)
-        {
-            command.Parameters["@total_chapters"].Value = title.TotalChapters;
-        }
-        
-        totalRowsAffected +=  await command.ExecuteNonQueryAsync();
-        
-        if (title is Book book)
-        {
-            string bookQuery = """
-                               update books
-                               set total_pages = @total_pages
-                               where id = @id
-                               """;
-
-            await using MySqlCommand bookCommand = new MySqlCommand(bookQuery, connection);
-
-            bookCommand.Parameters.AddWithValue("@id", title.Id);
-            bookCommand.Parameters.AddWithValue("@total_pages", DBNull.Value);
-            
-            if (book.TotalPages != null)
-            {
-                bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
-            }
-
-            totalRowsAffected += await bookCommand.ExecuteNonQueryAsync();
-        }
-        else if (title is Manga manga)
-        {
-            string mangaQuery = """
-                                update manga
-                                set total_volumes = @total_volumes
-                                where id = @id
+            string titleQuery = """
+                                update titles
+                                set name = @name,
+                                    creator = @creator,
+                                    isbn = @isbn,
+                                    total_chapters = @total_chapters
+                                    where id = @id
                                 """;
 
-            await using MySqlCommand mangaCommand = new MySqlCommand(mangaQuery, connection);
+            await using MySqlCommand command = new MySqlCommand(titleQuery, connection, transaction);
 
-            mangaCommand.Parameters.AddWithValue("@id", title.Id);
-            mangaCommand.Parameters.AddWithValue("@total_volumes", DBNull.Value);
+            command.Parameters.AddWithValue("@id", title.Id);
+            command.Parameters.AddWithValue("@name", title.Name);
+            command.Parameters.AddWithValue("@creator", title.Creator);
 
-            if (manga.TotalVolumes != null)
+            command.Parameters.AddWithValue("@isbn", DBNull.Value);
+            if (title.Isbn != null)
             {
-                mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
+                command.Parameters["@isbn"].Value = title.Isbn;
             }
 
-            totalRowsAffected += await mangaCommand.ExecuteNonQueryAsync();
+            command.Parameters.AddWithValue("@total_chapters", DBNull.Value);
+            if (title.TotalChapters != null)
+            {
+                command.Parameters["@total_chapters"].Value = title.TotalChapters;
+            }
+
+            totalRowsAffected += await command.ExecuteNonQueryAsync();
+
+            if (title is Book book)
+            {
+                string bookQuery = """
+                                   update books
+                                   set total_pages = @total_pages
+                                   where id = @id
+                                   """;
+
+                await using MySqlCommand bookCommand = new MySqlCommand(bookQuery, connection, transaction);
+
+                bookCommand.Parameters.AddWithValue("@id", title.Id);
+                bookCommand.Parameters.AddWithValue("@total_pages", DBNull.Value);
+
+                if (book.TotalPages != null)
+                {
+                    bookCommand.Parameters["@total_pages"].Value = book.TotalPages;
+                }
+
+                totalRowsAffected += await bookCommand.ExecuteNonQueryAsync();
+            }
+            else if (title is Manga manga)
+            {
+                string mangaQuery = """
+                                    update manga
+                                    set total_volumes = @total_volumes
+                                    where id = @id
+                                    """;
+
+                await using MySqlCommand mangaCommand = new MySqlCommand(mangaQuery, connection, transaction);
+
+                mangaCommand.Parameters.AddWithValue("@id", title.Id);
+                mangaCommand.Parameters.AddWithValue("@total_volumes", DBNull.Value);
+
+                if (manga.TotalVolumes != null)
+                {
+                    mangaCommand.Parameters["@total_volumes"].Value = manga.TotalVolumes;
+                }
+
+                totalRowsAffected += await mangaCommand.ExecuteNonQueryAsync();
+            }
+
+            await transaction.CommitAsync();
+            
+            return totalRowsAffected > 0;
         }
-        
-        return totalRowsAffected > 0;
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
     private Title MapReaderToTitle(MySqlDataReader reader)

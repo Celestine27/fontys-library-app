@@ -53,10 +53,17 @@ public class Edit : PageModel
         {
             return Page();
         }
+        
+        Title? existingTitle = await _titleService.GetTitleByIdAsync(TitleRequest.Id);
 
-        Title updateTitle = TitleRequest.SelectedType switch
+        if (existingTitle == null)
         {
-            "Book" => new Book
+            return RedirectToPage("/Index");
+        }
+
+        Title updateTitle = existingTitle switch
+        {
+            Book => new Book
             {
                 Id = TitleRequest.Id,
                 Name = TitleRequest.Name,
@@ -65,7 +72,7 @@ public class Edit : PageModel
                 TotalChapters = TitleRequest.TotalChapters,
                 TotalPages = TitleRequest.TotalPages
             },
-            "Manga" => new Manga
+            Manga => new Manga
             {
                 Id = TitleRequest.Id,
                 Name = TitleRequest.Name,
